@@ -12,22 +12,30 @@
 
 Random my_random;
 
+
 class Simulator 
 {
 private:
-	int num_of_doctors;
-	int num_of_nurses;
-	int total_time = 10080;
-	double average_visit_time;
-	double average_wait_time;
-	int total_patients_served = 0;
-	int clock;
+	int num_of_doctors; //number of doctors in simulation
+	int num_of_nurses; //number of nurses in simulation
+	int total_time = 10080; //total duration of simulation (10080 minutes or 1 week)
+	double average_visit_time; //average patient visit time to the emergency room
+	double average_wait_time; // average patient wait time to the emergency room
+	int total_patients_served = 0; //total number of patients treated
+	int clock; //clock used from running the simulation
 
-	Patient *patient;
-	EmergencyRoom *emergencyRoom;
-	vector < NurseQueue* > nurses;
-	vector < DoctorQueue* > doctors;
+	Patient *patient; //pointer to the patient
+	EmergencyRoom *emergencyRoom; //pointer to the emergency room
+	vector < NurseQueue* > nurses; //vector of Nurses
+	vector < DoctorQueue* > doctors; //vector of Doctors
 
+public:
+	Simulator() {
+		emergencyRoom = new EmergencyRoom;
+		patient = new Patient;
+	}
+
+	//reads out a prompt and then lets you enter a valid integer
 	int read_int(const std::string &prompt, int low, int high)
 	{
 		if (low >= high) // invalid range
@@ -54,45 +62,46 @@ private:
 		}
 	}
 
-public:
-	Simulator() {
-		emergencyRoom = new EmergencyRoom;
-		patient = new Patient;
-	}
-
+	//takes in all the user input
 	void enter_data() {
 		cout << "Welcome to the 273ville Hospital!\n";
 		cout << "Here you can test to find the most effiecent hospital.\n";
 		cout << "-------------------------------------------------------\n\n";
 
-		double rate = read_int("Please enter in the patient arrival rate per hour: ", 1, 59);
+		double rate = read_int("Please enter in the patient arrival rate per hour: ", 1, 59); //patient arrival rate
 		double arrival_rate = (rate / 60);
-		num_of_doctors = read_int("Please enter in the number of doctor(s): ", 1, INT_MAX);
-		num_of_nurses = read_int("Please enter in the number of nurse(s): ", 1, INT_MAX);
+		num_of_doctors = read_int("Please enter in the number of doctor(s): ", 1, INT_MAX); //number of doctors
+		num_of_nurses = read_int("Please enter in the number of nurse(s): ", 1, INT_MAX); //number of nurses
 
+		//creates new doctor queues for the number of doctors user inputed
 		for (int i = 0; i < num_of_doctors; i++) {
 			doctors.push_back(new DoctorQueue());
 		}
 
+		//creates new nurse queues for the number of nurses user inputed
 		for (int i = 0; i < num_of_nurses; i++) {
 			nurses.push_back(new NurseQueue());
 		}
 
-		patient->add_patients();
-		emergencyRoom->set_arrival_rate(arrival_rate);
-		emergencyRoom->set_num_of_doctors(num_of_doctors);
-		emergencyRoom->set_num_of_nurses(num_of_nurses);
-		emergencyRoom->set_patient(patient);
+		patient->add_patients(); //adds the patients from the list
+		emergencyRoom->set_arrival_rate(arrival_rate); //sets the arrival rate for emergency room
+		emergencyRoom->set_num_of_doctors(num_of_doctors); //sets number of doctors for emergency room
+		emergencyRoom->set_num_of_nurses(num_of_nurses); //sets number of nurses for emergency room
+		emergencyRoom->set_patient(patient); //sets the patient pointer
 
+		//sets the emergency queue to all the nurses
 		for (int i = 0; i < num_of_nurses; i++) {
 			nurses[i]->set_emergency_queue(emergencyRoom);
 		}
 
+		//sets the emergency queue to all the doctors
 		for (int i = 0; i < num_of_doctors; i++) {
 			doctors[i]->set_emergency_queue(emergencyRoom);
 		}
 	}
 
+	//loops through the different queues over the course of 10080 clock ticks
+	//representing a week of simulation
 	void run_simulation() {
 		for (clock = 0; clock < total_time; clock++)
 		{
@@ -106,6 +115,7 @@ public:
 		}
 	}
 
+	//displays every patient that has been served and their illness level
 	void show_list(){
 		for (int i = 0; i < total_patients_served; i++) {
 			cout << emergencyRoom->people_served.at(i)->first_name << " ";
@@ -115,9 +125,10 @@ public:
 		}
 	}
 
+	//searches for a patient that has been served by their first name
 	void search(string name) {
 		bool found = false;
-
+		//loops through the vector
 		for (int i = 0; i < total_patients_served; i++) {
 			if (emergencyRoom->people_served.at(i)->first_name == name) {
 				cout << emergencyRoom->people_served.at(i)->first_name << " ";
@@ -133,6 +144,8 @@ public:
 		cout << endl;
 	}
 
+	//displays the average wait time and average visit time of the patients treated
+	//shows how many patients entered the emergency room and were treated also
 	void end_data() {
 		double total_nurse_wait_time = 0;
 		double total_doctor_wait_time = 0;
@@ -158,6 +171,8 @@ public:
 		cout << "The total number of patients served was: " << total_patients_served << endl << endl;
 	}
 
+	//lets you choose whether you want to display all the patients, search for an indiviual one by
+	//their first name or exit the program
 	void end_menu() {
 		int num = 0;
 		string search_name;
